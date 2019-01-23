@@ -1,0 +1,226 @@
+[B]Unique Entity Number (UEN) 
+Algorithms 
+Version 1.2 
+Table of Contents 
+1. UEN For Local Company (yyyynnnnnX)....................................... ............................ 4
+2. UEN For Business (nnnnnnnnX) ................................................................................ 6 
+3. UEN For Other Entity Types (TyyPQnnnnX) ............................................................ 8 
+UEN Algorithms V1.2 
+Confidential Page 4 of 9 
+1. UEN For Local Company (yyyynnnnnX) 
+-- generating the company number starts 
+BEGIN 
+SELECT To_Char(sysdate,'YYYY'), Lpad(nvl(next_no,0),5,'0') 
+INTO V_T_Co_No, V_Next_No 
+FROM m_control_no 
+WHERE upper(doc_type) = 'L' FOR update; 
+EXCEPTION 
+WHEN no_data_found 
+THEN 
+V_ctrl_flag := 'Y'; 
+V_Co_No := To_char(sysdate,'YYYY')||'00001'; 
+END; 
+IF (V_ctrl_flag = 'Y' OR Length(Trim(V_Next_No)) > 0) THEN 
+V_T_Co_No := V_T_Co_No || V_Next_No; 
+BEGIN 
+V_First_Digit := substr(Trim(V_T_Co_No),1,1); 
+V_Second_Digit := substr(Trim(V_T_Co_No),2,1); 
+V_Third_Digit := substr(Trim(V_T_Co_No),3,1); 
+V_Fourth_Digit := substr(Trim(V_T_Co_No),4,1); 
+V_Fifth_Digit := substr(Trim(V_T_Co_No),5,1); 
+V_Sixth_Digit := substr(Trim(V_T_Co_No),6,1); 
+V_Seventh_Digit := substr(Trim(V_T_Co_No),7,1); 
+V_Eigth_Digit := substr(Trim(V_T_Co_No),8,1); 
+V_Ninth_Digit := substr(Trim(V_T_Co_No),9,1); 
+V_Total := (To_Number(V_Fifth_Digit) + 
+(2 * To_Number(V_Sixth_Digit)) + 
+(3 * To_Number(V_Seventh_Digit)) + 
+(4 * To_Number(V_Eigth_Digit)) + 
+(5 * To_Number(V_Ninth_Digit)) + 
+(6 * To_Number(V_First_Digit)) + 
+(7 * To_Number(V_Second_Digit)) + 
+(8 * To_Number(V_Third_Digit)) + 
+(9 * To_Number(V_Fourth_Digit))); 
+V_Reminder := (Mod(To_Number(V_Total),11)); 
+V_Check_Value := (11 - To_Number(V_Reminder)); 
+IF (V_Check_Value = '1') 
+THEN 
+V_Check_Digit := 'C'; 
+ELSIF (V_Check_Value = '2') 
+THEN 
+V_Check_Digit := 'D'; 
+ELSIF (V_Check_Value = '3') 
+THEN 
+V_Check_Digit := 'E'; 
+ELSIF (V_Check_Value = '4') 
+THEN 
+V_Check_Digit := 'G'; 
+ELSIF (V_Check_Value = '5') 
+THEN 
+V_Check_Digit := 'H'; 
+ELSIF (V_Check_Value = '6') 
+THEN 
+V_Check_Digit := 'K'; 
+ELSIF (V_Check_Value = '7') 
+THEN 
+V_Check_Digit := 'M'; 
+ELSIF (V_Check_Value = '8') 
+THEN 
+V_Check_Digit := 'N'; 
+ELSIF (V_Check_Value = '9') 
+THEN 
+V_Check_Digit := 'R'; 
+ELSIF (V_Check_Value = '10') 
+THEN 
+V_Check_Digit := 'W'; 
+ELSIF (V_Check_Value = '11') 
+THEN 
+V_Check_Digit := 'Z'; 
+END IF; 
+V_Co_No := V_T_Co_No || V_Check_Digit; 
+EXCEPTION 
+WHEN Others THEN 
+err_msg := 'While generating company no'; 
+sql_err_msg := sqlerrm; 
+RAISE Check_Error; 
+END; 
+END IF; 
+-- generating the company number ends 
+
+2. UEN For Business (nnnnnnnnX) 
+-- generating the business registration number starts 
+IF (v_Err_Msg = '1') THEN 
+v_Error_Location := 'S-M_CONTROL_NO'; 
+BEGIN 
+SELECT LPAD(NVL(NEXT_NO, 0), 8, '0') 
+INTO v_Next_No 
+FROM M_CONTROL_NO 
+WHERE UPPER(DOC_TYPE) = 'BR' FOR UPDATE; 
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN 
+v_InsCtrl_Biz_No := 'Y'; 
+v_Next_No := '00000001'; 
+END; 
+END IF; 
+IF (NVL(LENGTH(TRIM(v_Next_No)), 0) > 0) THEN 
+v_Error_Location := 'G-Check Digit'; 
+BEGIN 
+v_First_Digit := substr(Trim(v_Next_No),1,1); 
+v_Second_Digit := substr(Trim(v_Next_No),2,1); 
+v_Third_Digit := substr(Trim(v_Next_No),3,1); 
+v_Fourth_Digit := substr(Trim(v_Next_No),4,1); 
+v_Fifth_Digit := substr(Trim(v_Next_No),5,1); 
+v_Sixth_Digit := substr(Trim(v_Next_No),6,1); 
+v_Seventh_Digit := substr(Trim(v_Next_No),7,1); 
+v_Eigth_Digit := substr(Trim(v_Next_No),8,1); 
+v_Total := (9 * To_Number(v_First_Digit) + 
+(8 * To_Number(v_Second_Digit)) + 
+(7 * To_Number(v_Third_Digit)) + 
+(6 * To_Number(v_Fourth_Digit)) + 
+(5 * To_Number(v_Fifth_Digit)) + 
+(4 * To_Number(v_Sixth_Digit)) + 
+(3 * To_Number(v_Seventh_Digit)) + 
+(2 * To_Number(v_Eigth_Digit))); 
+v_Reminder := (Mod(To_Number(v_Total),11)); 
+v_Check_Value := (11 - To_Number(v_Reminder)); 
+IF (v_Check_Value = '1') THEN 
+v_Check_Digit := 'A'; 
+ELSIF (v_Check_Value = '2') THEN 
+v_Check_Digit := 'B'; 
+ELSIF (v_Check_Value = '3') THEN 
+v_Check_Digit := 'C'; 
+ELSIF (v_Check_Value = '4') THEN 
+v_Check_Digit := 'D'; 
+ELSIF (v_Check_Value = '5') THEN 
+v_Check_Digit := 'E'; 
+ELSIF (v_Check_Value = '6') THEN 
+v_Check_Digit := 'J'; 
+UEN Algorithms V1.2 
+Confidential Page 7 of 9 
+ELSIF (V_Check_Value = '7') THEN 
+v_Check_Digit := 'K'; 
+ELSIF (v_Check_Value = '8') THEN 
+v_Check_Digit := 'L'; 
+ELSIF (v_Check_Value = '9') THEN 
+v_Check_Digit := 'M'; 
+ELSIF (v_Check_Value = '10') THEN 
+v_Check_Digit := 'W'; 
+ELSIF (v_Check_Value = '11') THEN 
+v_Check_Digit := 'X'; 
+End If; 
+v_Biz_No := v_Next_No || v_Check_Digit; 
+EXCEPTION 
+WHEN OTHERS THEN 
+v_Err_Msg := 'While generating business registration number.'; 
+v_SQL_Err_Msg := SUBSTR(SQLERRM, 1, 100); 
+RAISE v_UserException; 
+END; 
+END IF; 
+-- generating the business registration number ends 
+
+3. UEN For Other Entity Types (TyyPQnnnnX) 
+T y y P Q n n n n X 
+??????Tyy = year of issuance 
+o T stands for 20. e.g. T05 means 2005 
+o S stands for 19 e.g. S97 means 1997 
+o R stands for 18 e.g. R90 means 1890 
+??????PQ refers to the Entity type available within respective agency (e.g. LL for Limited 
+Liability Partnership (ACRA), CM for Medical Clinic (MOH), CS for Corporative 
+Societies (ROS)) 
+??????X is the check-alphabet 
+??????Algorithm DN refers to ???T???, ???y???, ???P???, ???Q???, ???n??? 
+Rules 
+??????If DN is an alphabet, each alphabet will be assigned with a digit from 1 to 24 
+?????????Alphabet to Number??? & vice-versa translation as needed i.e. 
+Alphabet ??? Number Translation Table 
+A 1 N 13 
+B 2 P 14 
+C 3 Q 15 
+D 4 R 16 
+E 5 S 17 
+F 6 T 18 
+G 7 U 19 
+H 8 V 20 
+J 9 W 21 
+K 10 X 22 
+L 11 Y 23 
+M 12 Z 24 
+o A _ 1, B _ 2, C _ 3, ??? , Y _ 23, Z _ 24 
+??????If DN is a number, use the number value 
+??????No Zeros or Negative constant values (i.e. K1, K2, ??? , K9) 
+Algorithm 
+X??? = ([ _ N = 1 to 9 (DN x KN) ] mod 11) + 1 
+Where K1, K2 ??? K9 values are { } 
+Example 
+UEN: T 0 7 C M 17 3 2 X 
+UEN Algorithms V1.2 
+Confidential Page 9 of 9 
+X??? = ([ _ N = 1 to 9 (DN x KN) ] mod 11) + 1 
+K values are ONENUMBER (translates ONENUMBER to Number from A ??? 1 to Z ??? 26). 
+The numeric form is { 15, 14, 5, 14, 21, 13, 2, 5, 18 } 
+NOTE: K value translation is different from Dn value translation. Dn value translation 
+excludes alphabet I and O. 
+K1 = 15, K2 = 14, K3 = 5, K4 = 14, K5 = 21, K6 = 13, K7 = 2, K8 = 5, K9 = 18 
+_ convert alphabet to number based on rule A ??? 1, B ??? 2 ??? Y = 25 and Z = 26. 
+D1 = 18, D2 = 0, D3 = 7, D4 = 3, D5 = 12, D6 =1, D7 =7, D8 = 3, D9 = 2 
+_ convert alphabet to number based on rule A ??? 1, B ??? 2 ??? Y = 23 and Z = 24. 
+_ Dn translation excludes alphabet I and O. 
+X??? = ([ (18 x 15) + (0 x14) + (7 x 5) + (3 x 14) + (12 x 21) + (1 x 13) + (7 x 2) + (3 
+x 5) + (2 x 18) ] mod 11) + 1 
+X??? = (677 mod 11) + 1 = 7 
+Therefore, check-alphabet, based on Dn translation rule, X = G 
+Same information in presented in tabular format: 
+Proposed K values for UEN O N E N U M B E R 
+Corresponding numerical K values 15 14 5 14 21 13 2 5 18 
+Sample UEN to compute checksum T 0 7 C M 1 7 3 2 
+Numerical values of UEN 18 0 7 3 12 1 7 3 2 
+DNx KN 270 0 35 42 252 13 14 15 36 
+_N = 1to 9 (DNx KN) 677 
+( [ _N = 1to 9 (DNx KN) ] mod 11 ) 6 
+( [ _N = 1to 9 (DNx KN) ] mod 11 ) + 1 7 
+Alphabet from conversion table G 
+The UEN is T 0 7 C M 1 7 3 2 G[/B] 
+this is the algorithm. 
+im new to flexfields so plz help me how to create value sets for this algorithms. 
+
+this same DFF i must create in ar-->customers-->standard form. but previoulsy in receivables module they used customer reference number as unique identity but now they want to chenage it to uen but now i must check if customer have customer reference numbe
